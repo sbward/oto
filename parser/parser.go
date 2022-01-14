@@ -291,16 +291,22 @@ func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodTy
 	}
 	sig := methodType.Type().(*types.Signature)
 	inputParams := sig.Params()
-	if inputParams.Len() != 1 {
-		return m, p.wrapErr(errors.New("invalid method signature: expected Method(MethodRequest) MethodResponse"), pkg, methodType.Pos())
+	if inputParams.Len() == 2 && inputParams.At(0).Type().String() != "context.Context" {
+		return m, p.wrapErr(errors.New("invalid method signature: expected first argument of two to be context.Context"), pkg, methodType.Pos())
 	}
-	m.InputObject, err = p.parseFieldType(pkg, inputParams.At(0))
+	if l := inputParams.Len(); l < 1 || l > 2 {
+		return m, p.wrapErr(errors.New("invalid method signature: expected arguments (MethodRequest) or (context.Context, MethodRequest)"), pkg, methodType.Pos())
+	}
+	m.InputObject, err = p.parseFieldType(pkg, inputParams.At(inputParams.Len()-1))
 	if err != nil {
 		return m, errors.Wrap(err, "parse input object type")
 	}
 	outputParams := sig.Results()
-	if outputParams.Len() != 1 {
-		return m, p.wrapErr(errors.New("invalid method signature: expected Method(MethodRequest) MethodResponse"), pkg, methodType.Pos())
+	if outputParams.Len() == 2 && outputParams.At(1).Type().String() != "error" {
+		return m, p.wrapErr(errors.New("invalid method signature: expected second return value of two to be error"), pkg, methodType.Pos())
+	}
+	if l := outputParams.Len(); l < 1 || l > 2 {
+		return m, p.wrapErr(errors.New("invalid method signature: expected to return MethodResponse or (MethodResponse, error)"), pkg, methodType.Pos())
 	}
 	m.OutputObject, err = p.parseFieldType(pkg, outputParams.At(0))
 	if err != nil {

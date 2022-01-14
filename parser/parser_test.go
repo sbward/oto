@@ -255,3 +255,18 @@ func TestParseNestedStructs(t *testing.T) {
 	is.True(err != nil)
 	is.True(strings.Contains(err.Error(), "nested structs not supported"))
 }
+
+// Ignore context.Context, pointer types, and returning an error.
+func TestIgnoreExtras(t *testing.T) {
+	is := is.New(t)
+	patterns := []string{"./testdata/extra"}
+	parser := New(patterns...)
+	parser.Verbose = testing.Verbose()
+	def, err := parser.Parse()
+	is.NoErr(err)
+
+	is.Equal(def.ObjectIsInput("*AcclaimRequest"), true)
+	is.Equal(def.ObjectIsInput("*AcclaimResponse"), false)
+	is.Equal(def.ObjectIsOutput("*AcclaimRequest"), false)
+	is.Equal(def.ObjectIsOutput("*AcclaimResponse"), true)
+}
