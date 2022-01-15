@@ -255,3 +255,16 @@ func TestParseNestedStructs(t *testing.T) {
 	is.True(err != nil)
 	is.True(strings.Contains(err.Error(), "nested structs not supported"))
 }
+
+func TestInclude(t *testing.T) {
+	is := is.New(t)
+	patterns := []string{"./testdata/services/pleasantries"}
+	parser := New(patterns...)
+	parser.Verbose = testing.Verbose()
+	parser.IncludeInterfaces = []string{"GreeterService"}
+	def, err := parser.Parse()
+	is.NoErr(err)
+
+	is.Equal(len(def.Services), 1)
+	is.Equal(def.Services[0].Name, "GreeterService")
+}

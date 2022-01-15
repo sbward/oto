@@ -162,6 +162,7 @@ type Parser struct {
 	Verbose bool
 
 	ExcludeInterfaces []string
+	IncludeInterfaces []string
 
 	patterns []string
 	def      Definition
@@ -208,6 +209,9 @@ func (p *Parser) Parse() (Definition, error) {
 			obj := scope.Lookup(name)
 			switch item := obj.Type().Underlying().(type) {
 			case *types.Interface:
+				if len(p.IncludeInterfaces) > 0 && !isInSlice(p.IncludeInterfaces, name) {
+					continue
+				}
 				s, err := p.parseService(pkg, obj, item)
 				if err != nil {
 					return p.def, err
