@@ -224,8 +224,6 @@ func (p *Parser) Parse() (Definition, error) {
 					continue
 				}
 				p.def.Services = append(p.def.Services, s)
-			case *types.Struct:
-				p.parseObject(pkg, obj, item)
 			}
 		}
 	}
