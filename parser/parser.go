@@ -284,6 +284,9 @@ func (p *Parser) parseService(pkg *packages.Package, obj types.Object, interface
 func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodType *types.Func) (Method, error) {
 	var m Method
 	m.Name = methodType.Name()
+	if p.Verbose {
+		fmt.Printf("%s ", m.Name)
+	}
 	m.NameLowerCamel = camelizeDown(m.Name)
 	m.Comment = p.commentForMethod(serviceName, m.Name)
 	var err error
@@ -322,6 +325,9 @@ func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodTy
 func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Struct) error {
 	var obj Object
 	obj.Name = o.Name()
+	if p.Verbose {
+		fmt.Printf("%s ", obj.Name)
+	}
 	obj.Comment = p.commentForType(obj.Name)
 	var err error
 	obj.Metadata, obj.Comment, err = p.extractCommentMetadata(obj.Comment)
@@ -377,6 +383,9 @@ func (p *Parser) parseTags(tag string) (map[string]FieldTag, error) {
 func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.Var, tag string) (Field, error) {
 	var f Field
 	f.Name = v.Name()
+	if p.Verbose {
+		fmt.Printf("%s ", f.Name)
+	}
 	f.NameLowerCamel = camelizeDown(f.Name)
 	// if it has a json tag, use that as the NameJSON.
 	if tag != "" {
@@ -423,6 +432,9 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 	}
 
 	typ := obj.Type()
+	if p.Verbose {
+		fmt.Printf("%s ", typ.String())
+	}
 	if slice, ok := obj.Type().(*types.Slice); ok {
 		typ = slice.Elem()
 		ftype.Multiple = true
