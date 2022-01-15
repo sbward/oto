@@ -40,6 +40,7 @@ flags:`)
 		v          = flags.Bool("v", false, "verbose output")
 		paramsStr  = flags.String("params", "", "list of parameters in the format: \"key:value,key:value\"")
 		ignoreList = flags.String("ignore", "", "comma separated list of interfaces to ignore")
+		matchList  = flags.String("match", "", "comma separated list of interfaces to match")
 	)
 	if err := flags.Parse(args[1:]); err != nil {
 		return err
@@ -57,6 +58,10 @@ flags:`)
 	ignoreItems := strings.Split(*ignoreList, ",")
 	if ignoreItems[0] != "" {
 		p.ExcludeInterfaces = ignoreItems
+	}
+	matchItems := strings.Split(*matchList, ",")
+	if matchItems[0] != "" {
+		p.IncludeInterfaces = matchItems
 	}
 	p.Verbose = *v
 	if p.Verbose {
