@@ -69,7 +69,7 @@ flags:`)
 	}
 	def, err := p.Parse()
 	if err != nil {
-		return err
+		return fmt.Errorf("oto parse failed: %w", err)
 	}
 	if *pkg != "" {
 		def.PackageName = *pkg
