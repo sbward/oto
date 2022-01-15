@@ -69,30 +69,30 @@ flags:`)
 	}
 	def, err := p.Parse()
 	if err != nil {
-		return fmt.Errorf("oto parse failed: %w", err)
+		return errors.Wrap(err, "parse")
 	}
 	if *pkg != "" {
 		def.PackageName = *pkg
 	}
 	b, err := ioutil.ReadFile(*template)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "readfile")
 	}
 	out, err := render.Render(string(b), def, params)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "render")
 	}
 	var w io.Writer = stdout
 	if *outfile != "" {
 		f, err := os.Create(*outfile)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "create outfile")
 		}
 		defer f.Close()
 		w = f
 	}
 	if _, err := io.WriteString(w, out); err != nil {
-		return err
+		return errors.Wrap(err, "write outfile")
 	}
 	if p.Verbose {
 		var methodsCount int
