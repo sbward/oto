@@ -10,8 +10,8 @@ import (
 	"github.com/fatih/structtag"
 	"github.com/gobuffalo/plush"
 	"github.com/markbates/inflect"
-	"github.com/pacedotdev/oto/parser"
 	"github.com/pkg/errors"
+	"github.com/sbward/oto/parser"
 )
 
 var defaultRuleset = inflect.NewDefaultRuleset()

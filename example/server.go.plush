@@ -6,7 +6,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/pacedotdev/oto/otohttp"
+	"github.com/sbward/oto/otohttp"
 	<%= for (importPath, name) in def.Imports { %>
 	<%= name %> "<%= importPath %>"
 	<% } %>

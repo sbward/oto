@@ -7,7 +7,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/pacedotdev/oto/otohttp"
+	"github.com/sbward/oto/otohttp"
 )
 
 //go:generate ./generate.sh

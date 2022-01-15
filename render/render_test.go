@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/matryer/is"
-	"github.com/pacedotdev/oto/parser"
+	"github.com/sbward/oto/parser"
 )
 
 func TestRender(t *testing.T) {
@@ -32,7 +32,7 @@ package <%= def.PackageName %>`
 	}
 }
 
-// TestRenderCommentsWithQuotes addresses https://github.com/pacedotdev/oto/issues/17.
+// TestRenderCommentsWithQuotes addresses https://github.com/sbward/oto/issues/17.
 func TestRenderCommentsWithQuotes(t *testing.T) {
 	is := is.New(t)
 	def := parser.Definition{
