@@ -114,6 +114,7 @@ You will love it.`)
 	is.NoErr(err)
 	is.Equal(strangeInputObj.Fields[0].Type.JSType, "any")
 	is.Equal(strangeInputObj.Fields[0].Type.TSType, "object")
+	is.Equal(strangeInputObj.Fields[1].Type.UnderlyingTypeName, "string")
 
 	is.Equal(def.Services[2].Name, "Welcomer")
 	is.Equal(len(def.Services[2].Methods), 1)

@@ -143,6 +143,7 @@ type FieldType struct {
 	// CleanObjectName is the ObjectName with * removed
 	// for pointer types.
 	CleanObjectName      string `json:"cleanObjectName"`
+	UnderlyingTypeName   string `json:"underlyingTypeName"`
 	ObjectNameLowerCamel string `json:"objectNameLowerCamel"`
 	Multiple             bool   `json:"multiple"`
 	Package              string `json:"package"`
@@ -453,6 +454,8 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 			}
 			ftype.IsObject = true
 		}
+		ut := types.TypeString(named.Underlying(), func(other *types.Package) string { return "" })
+		ftype.UnderlyingTypeName = strings.TrimPrefix(ut, "*")
 	}
 	// disallow nested structs
 	switch typ.(type) {
