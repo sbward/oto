@@ -450,6 +450,7 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 		typ = pointerType.Elem()
 		isPointer = true
 	}
+	ut := typ.Underlying()
 	if named, ok := typ.(*types.Named); ok {
 		if structure, ok := named.Underlying().(*types.Struct); ok {
 			if err := p.parseObject(pkg, named.Obj(), structure); err != nil {
@@ -457,9 +458,10 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 			}
 			ftype.IsObject = true
 		}
-		ut := types.TypeString(named.Underlying(), func(other *types.Package) string { return "" })
-		ftype.UnderlyingTypeName = strings.TrimPrefix(ut, "*")
+		ut = named.Underlying()
 	}
+	ftype.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
+
 	// disallow nested structs
 	switch typ.(type) {
 	case *types.Struct:
@@ -477,7 +479,7 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 		ftype.JSType = "object"
 		//ftype.SwiftType = "Any"
 	} else {
-		switch ftype.CleanObjectName {
+		switch ftype.UnderlyingTypeName {
 		case "interface{}":
 			ftype.JSType = "any"
 			ftype.SwiftType = "Any"
