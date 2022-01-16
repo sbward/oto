@@ -350,6 +350,9 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 	obj.TypeID = o.Pkg().Path() + "." + obj.Name
 	obj.Fields = []Field{}
 	for i := 0; i < st.NumFields(); i++ {
+		if !st.Field(i).Exported() {
+			continue
+		}
 		field, err := p.parseField(pkg, obj.Name, st.Field(i), st.Tag(i))
 		if err != nil {
 			return err
