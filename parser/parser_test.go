@@ -135,6 +135,7 @@ You will love it.`)
 	is.Equal(welcomeInputObject.Fields[0].Comment, "To is the address of the person to send the message to.")
 	is.Equal(welcomeInputObject.Fields[0].Metadata["featured"], true)
 	is.Equal(welcomeInputObject.Fields[0].NameLowerCamel, "recipients") // changed by json tag
+	is.Equal(welcomeInputObject.Fields[0].NameJSON, "recipients")       // changed by json tag
 	is.Equal(welcomeInputObject.Fields[0].OmitEmpty, false)
 	is.Equal(welcomeInputObject.Fields[0].Type.TypeName, "string")
 	is.Equal(welcomeInputObject.Fields[0].Type.Multiple, false)
@@ -144,6 +145,7 @@ You will love it.`)
 	is.Equal(welcomeInputObject.Fields[1].Name, "Name")
 	is.True(welcomeInputObject.Fields[0].Metadata != nil) // no metadata shouldn't be nil
 	is.Equal(welcomeInputObject.Fields[1].NameLowerCamel, "name")
+	is.Equal(welcomeInputObject.Fields[1].NameJSON, "Name")
 	is.Equal(welcomeInputObject.Fields[1].OmitEmpty, false)
 	is.Equal(welcomeInputObject.Fields[1].Type.TypeName, "*string")
 	is.Equal(welcomeInputObject.Fields[1].Type.JSType, "string")

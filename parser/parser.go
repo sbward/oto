@@ -114,6 +114,7 @@ type Object struct {
 type Field struct {
 	Name           string              `json:"name"`
 	NameLowerCamel string              `json:"nameLowerCamel"`
+	NameJSON       string              `json:"nameJSON"`
 	Type           FieldType           `json:"type"`
 	OmitEmpty      bool                `json:"omitEmpty"`
 	Comment        string              `json:"comment"`
@@ -387,6 +388,7 @@ func (p *Parser) parseTags(tag string) (map[string]FieldTag, error) {
 func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.Var, tag string) (Field, error) {
 	var f Field
 	f.Name = v.Name()
+	f.NameJSON = v.Name()
 	if p.Verbose {
 		fmt.Printf("%s ", f.Name)
 	}
@@ -397,6 +399,7 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 		jsonTag := fieldTag.Get("json")
 		if jsonTag != "" {
 			f.NameLowerCamel = strings.Split(jsonTag, ",")[0]
+			f.NameJSON = strings.Split(jsonTag, ",")[0]
 		}
 	}
 	f.Comment = p.commentForField(objectName, f.Name)
