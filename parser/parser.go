@@ -124,6 +124,7 @@ type Field struct {
 	// Metadata are typed key/value pairs extracted from the
 	// comments.
 	Metadata map[string]interface{} `json:"metadata"`
+	Skip     bool
 }
 
 // FieldTag is a parsed tag.
@@ -358,6 +359,9 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 		if err != nil {
 			return err
 		}
+		if field.Skip {
+			continue
+		}
 		field.Tag = v.Tag(i)
 		field.ParsedTags, err = p.parseTags(field.Tag)
 		if err != nil {
@@ -398,8 +402,13 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 		fieldTag := reflect.StructTag(tag)
 		jsonTag := fieldTag.Get("json")
 		if jsonTag != "" {
-			f.NameLowerCamel = strings.Split(jsonTag, ",")[0]
-			f.NameJSON = strings.Split(jsonTag, ",")[0]
+			jsonName := strings.Split(jsonTag, ",")[0]
+			if jsonName == "-" {
+				f.Skip = true
+			} else {
+				f.NameLowerCamel = jsonName
+				f.NameJSON = jsonName
+			}
 		}
 	}
 	f.Comment = p.commentForField(objectName, f.Name)

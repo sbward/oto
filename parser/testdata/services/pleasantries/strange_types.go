@@ -7,6 +7,7 @@ type StrangeTypesService interface {
 type DoSomethingStrangeRequest struct {
 	Anything interface{}
 	Alias    Alias
+	Private  int `json:"-"`
 }
 
 type DoSomethingStrangeResponse struct {
