@@ -424,9 +424,11 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 	if example, ok := f.Metadata["example"]; ok {
 		f.Example = example
 	}
-	f.Type, err = p.parseFieldType(pkg, v)
-	if err != nil {
-		return f, errors.Wrap(err, "parse type")
+	if !f.Skip {
+		f.Type, err = p.parseFieldType(pkg, v)
+		if err != nil {
+			return f, errors.Wrap(err, "parse type")
+		}
 	}
 	return f, nil
 }
