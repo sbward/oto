@@ -463,7 +463,7 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 		isPointer = true
 	}
 	ut := typ.Underlying()
-	if named, ok := typ.(*types.Named); ok {
+	if named, ok := typ.(*types.Named); ok && typ.String() != "time.Time" {
 		if structure, ok := named.Underlying().(*types.Struct); ok {
 			if err := p.parseObject(pkg, named.Obj(), structure); err != nil {
 				return ftype, err
@@ -472,7 +472,11 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 		}
 		ut = named.Underlying()
 	}
-	ftype.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
+	if typ.String() == "time.Time" {
+		ftype.UnderlyingTypeName = "string" // time.Time marshals itself to string
+	} else {
+		ftype.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
+	}
 
 	// disallow nested structs
 	switch typ.(type) {
