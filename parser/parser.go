@@ -401,7 +401,8 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 	if jsonTag, ok := f.ParsedTags["json"]; ok {
 		if jsonTag.Value == "-" {
 			f.Skip = true
-		} else {
+		}
+		if jsonTag.Value != "" {
 			f.NameLowerCamel = jsonTag.Value
 			f.NameJSON = jsonTag.Value
 		}
