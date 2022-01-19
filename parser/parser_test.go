@@ -117,6 +117,7 @@ You will love it.`)
 	is.Equal(strangeInputObj.Fields[1].Type.UnderlyingTypeName, "string")
 	is.Equal(strangeInputObj.Fields[2].Type.UnderlyingTypeName, "string")
 	is.Equal(strangeInputObj.Fields[3].Type.UnderlyingTypeName, "string")
+	is.True(strangeInputObj.Fields[3].OmitEmpty)
 	is.Equal(len(strangeInputObj.Fields), 4)
 
 	is.Equal(def.Services[2].Name, "Welcomer")

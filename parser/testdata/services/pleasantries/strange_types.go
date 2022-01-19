@@ -11,7 +11,7 @@ type DoSomethingStrangeRequest struct {
 	Alias        Alias
 	Private      int `json:"-"`
 	Time         time.Time
-	OptionalTime *time.Time
+	OptionalTime *time.Time `json:",omitempty"`
 }
 
 type DoSomethingStrangeResponse struct {

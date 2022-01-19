@@ -8,7 +8,6 @@ import (
 	"go/doc"
 	"go/token"
 	"go/types"
-	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -362,11 +361,6 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 		if field.Skip {
 			continue
 		}
-		field.Tag = v.Tag(i)
-		field.ParsedTags, err = p.parseTags(field.Tag)
-		if err != nil {
-			return errors.Wrap(err, "parse field tag")
-		}
 		obj.Fields = append(obj.Fields, field)
 	}
 	p.def.Objects = append(p.def.Objects, obj)
@@ -397,17 +391,23 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 		fmt.Printf("%s ", f.Name)
 	}
 	f.NameLowerCamel = camelizeDown(f.Name)
-	// if it has a json tag, use that as the NameJSON.
-	if tag != "" {
-		fieldTag := reflect.StructTag(tag)
-		jsonTag := fieldTag.Get("json")
-		if jsonTag != "" {
-			jsonName := strings.Split(jsonTag, ",")[0]
-			if jsonName == "-" {
-				f.Skip = true
-			} else {
-				f.NameLowerCamel = jsonName
-				f.NameJSON = jsonName
+	f.Tag = tag
+	var err error
+	f.ParsedTags, err = p.parseTags(tag)
+	if err != nil {
+		return f, errors.Wrap(err, "parse field tag")
+	}
+	// If it has a json tag, use that as the NameJSON.
+	if jsonTag, ok := f.ParsedTags["json"]; ok {
+		if jsonTag.Value == "-" {
+			f.Skip = true
+		} else {
+			f.NameLowerCamel = jsonTag.Value
+			f.NameJSON = jsonTag.Value
+		}
+		for _, option := range jsonTag.Options {
+			if option == "omitempty" {
+				f.OmitEmpty = true
 			}
 		}
 	}
@@ -416,7 +416,6 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 	if !v.Exported() {
 		return f, p.wrapErr(errors.New(f.Name+" must be exported"), pkg, v.Pos())
 	}
-	var err error
 	f.Metadata, f.Comment, err = p.extractCommentMetadata(f.Comment)
 	if err != nil {
 		return f, p.wrapErr(errors.New("extract comment metadata"), pkg, v.Pos())
