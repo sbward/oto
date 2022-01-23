@@ -12,6 +12,11 @@ type DoSomethingStrangeRequest struct {
 	Private      int `json:"-"`
 	Time         time.Time
 	OptionalTime *time.Time `json:",omitempty"`
+	InfiniteLoop *InfiniteLoop
+}
+
+type InfiniteLoop struct {
+	*InfiniteLoop
 }
 
 type DoSomethingStrangeResponse struct {

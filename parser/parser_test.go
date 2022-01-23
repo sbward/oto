@@ -119,7 +119,8 @@ You will love it.`)
 	is.Equal(strangeInputObj.Fields[3].Type.UnderlyingTypeName, "string")
 	is.Equal(strangeInputObj.Fields[3].NameJSON, "OptionalTime")
 	is.True(strangeInputObj.Fields[3].OmitEmpty)
-	is.Equal(len(strangeInputObj.Fields), 4)
+	is.Equal(strangeInputObj.Fields[4].NameJSON, "InfiniteLoop")
+	is.Equal(len(strangeInputObj.Fields), 5)
 
 	is.Equal(def.Services[2].Name, "Welcomer")
 	is.Equal(len(def.Services[2].Methods), 1)
@@ -193,7 +194,7 @@ You will love it.`)
 	is.Equal(welcomeOutputObject.Fields[1].Type.SwiftType, "String")
 	is.True(welcomeOutputObject.Metadata != nil)
 
-	is.Equal(len(def.Objects), 11)
+	is.Equal(len(def.Objects), 12)
 	for i := range def.Objects {
 		switch def.Objects[i].Name {
 		case "Greeting":
@@ -214,9 +215,9 @@ You will love it.`)
 func TestFieldTypeIsOptional(t *testing.T) {
 	is := is.New(t)
 
-	f := FieldType{ObjectName: "*SomeType"}
+	f := Type{ObjectName: "*SomeType"}
 	is.Equal(f.IsOptional(), true)
-	f = FieldType{ObjectName: "SomeType"}
+	f = Type{ObjectName: "SomeType"}
 	is.Equal(f.IsOptional(), false)
 }
 

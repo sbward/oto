@@ -87,11 +87,11 @@ type Service struct {
 
 // Method describes a method that a Service can perform.
 type Method struct {
-	Name           string    `json:"name"`
-	NameLowerCamel string    `json:"nameLowerCamel"`
-	InputObject    FieldType `json:"inputObject"`
-	OutputObject   FieldType `json:"outputObject"`
-	Comment        string    `json:"comment"`
+	Name           string `json:"name"`
+	NameLowerCamel string `json:"nameLowerCamel"`
+	InputObject    Type   `json:"inputObject"`
+	OutputObject   Type   `json:"outputObject"`
+	Comment        string `json:"comment"`
 	// Metadata are typed key/value pairs extracted from the
 	// comments.
 	Metadata map[string]interface{} `json:"metadata"`
@@ -114,7 +114,7 @@ type Field struct {
 	Name           string              `json:"name"`
 	NameLowerCamel string              `json:"nameLowerCamel"`
 	NameJSON       string              `json:"nameJSON"`
-	Type           FieldType           `json:"type"`
+	Type           Type                `json:"type"`
 	OmitEmpty      bool                `json:"omitEmpty"`
 	Comment        string              `json:"comment"`
 	Tag            string              `json:"tag"`
@@ -135,9 +135,8 @@ type FieldTag struct {
 	Options []string `json:"options"`
 }
 
-// FieldType holds information about the type of data that this
-// Field stores.
-type FieldType struct {
+// Type holds information about a data type.
+type Type struct {
 	TypeID     string `json:"typeID"`
 	TypeName   string `json:"typeName"`
 	ObjectName string `json:"objectName"`
@@ -149,13 +148,16 @@ type FieldType struct {
 	Multiple             bool   `json:"multiple"`
 	Package              string `json:"package"`
 	IsObject             bool   `json:"isObject"`
-	JSType               string `json:"jsType"`
-	TSType               string `json:"tsType"`
-	SwiftType            string `json:"swiftType"`
+	IsMap                bool   `json:"isMap"`
+	// MapKeyType           Type   `json:"-"`
+	// MapElemType          Type   `json:"-"`
+	JSType    string `json:"jsType"`
+	TSType    string `json:"tsType"`
+	SwiftType string `json:"swiftType"`
 }
 
 // IsOptional returns true for pointer types (optional).
-func (f FieldType) IsOptional() bool {
+func (f Type) IsOptional() bool {
 	return strings.HasPrefix(f.ObjectName, "*")
 }
 
@@ -304,7 +306,7 @@ func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodTy
 	if l := inputParams.Len(); l < 1 || l > 2 {
 		return m, p.wrapErr(errors.New("invalid method signature: expected arguments (MethodRequest) or (context.Context, MethodRequest)"), pkg, methodType.Pos())
 	}
-	m.InputObject, err = p.parseFieldType(pkg, inputParams.At(inputParams.Len()-1))
+	m.InputObject, err = p.parseTypeDecl(pkg, inputParams.At(inputParams.Len()-1))
 	if err != nil {
 		return m, errors.Wrap(err, "parse input object type")
 	}
@@ -315,7 +317,7 @@ func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodTy
 	if l := outputParams.Len(); l < 1 || l > 2 {
 		return m, p.wrapErr(errors.New("invalid method signature: expected to return MethodResponse or (MethodResponse, error)"), pkg, methodType.Pos())
 	}
-	m.OutputObject, err = p.parseFieldType(pkg, outputParams.At(0))
+	m.OutputObject, err = p.parseTypeDecl(pkg, outputParams.At(0))
 	if err != nil {
 		return m, errors.Wrap(err, "parse output object type")
 	}
@@ -325,6 +327,9 @@ func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodTy
 
 // parseObject parses a struct type and adds it to the Definition.
 func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Struct) error {
+	if _, ok := p.objects[o.Name()]; ok {
+		return nil
+	}
 	var obj Object
 	obj.Name = o.Name()
 	if p.Verbose {
@@ -350,6 +355,7 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 	}
 	obj.TypeID = o.Pkg().Path() + "." + obj.Name
 	obj.Fields = []Field{}
+	p.objects[obj.Name] = struct{}{}
 	for i := 0; i < st.NumFields(); i++ {
 		if !st.Field(i).Exported() {
 			continue
@@ -364,7 +370,6 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 		obj.Fields = append(obj.Fields, field)
 	}
 	p.def.Objects = append(p.def.Objects, obj)
-	p.objects[obj.Name] = struct{}{}
 	return nil
 }
 
@@ -425,7 +430,7 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 		f.Example = example
 	}
 	if !f.Skip {
-		f.Type, err = p.parseFieldType(pkg, v)
+		f.Type, err = p.parseTypeDecl(pkg, v)
 		if err != nil {
 			return f, errors.Wrap(err, "parse type")
 		}
@@ -433,8 +438,8 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 	return f, nil
 }
 
-func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldType, error) {
-	var ftype FieldType
+func (p *Parser) parseTypeDecl(pkg *packages.Package, obj types.Object) (Type, error) {
+	var t Type
 	pkgPath := pkg.PkgPath
 	resolver := func(other *types.Package) string {
 		if other.Name() != pkg.Name {
@@ -442,7 +447,7 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 				p.def.Imports = make(map[string]string)
 			}
 			p.def.Imports[other.Path()] = other.Name()
-			ftype.Package = other.Path()
+			t.Package = other.Path()
 			pkgPath = other.Path()
 			return other.Name()
 		}
@@ -455,7 +460,7 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 	}
 	if slice, ok := obj.Type().(*types.Slice); ok {
 		typ = slice.Elem()
-		ftype.Multiple = true
+		t.Multiple = true
 	}
 	isPointer := true
 	originalTyp := typ
@@ -468,62 +473,82 @@ func (p *Parser) parseFieldType(pkg *packages.Package, obj types.Object) (FieldT
 	if named, ok := typ.(*types.Named); ok && typ.String() != "time.Time" {
 		if structure, ok := named.Underlying().(*types.Struct); ok {
 			if err := p.parseObject(pkg, named.Obj(), structure); err != nil {
-				return ftype, err
+				return t, err
 			}
-			ftype.IsObject = true
+			t.IsObject = true
 		}
 		ut = named.Underlying()
 	}
+	if mapType, ok := typ.(*types.Map); ok {
+		t.IsMap = true
+		if named, ok := mapType.Key().(*types.Named); ok {
+			if structure, ok := named.Underlying().(*types.Struct); ok {
+				if err := p.parseObject(pkg, named.Obj(), structure); err != nil {
+					return t, err
+				}
+			}
+		}
+		if named, ok := mapType.Elem().(*types.Named); ok {
+			if structure, ok := named.Underlying().(*types.Struct); ok {
+				if err := p.parseObject(pkg, named.Obj(), structure); err != nil {
+					return t, err
+				}
+			}
+		}
+	}
 	if typ.String() == "time.Time" {
-		ftype.UnderlyingTypeName = "string" // time.Time marshals itself to string
+		t.UnderlyingTypeName = "string" // time.Time marshals itself to string
 	} else {
-		ftype.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
+		t.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
 	}
 
 	// disallow nested structs
 	switch typ.(type) {
 	case *types.Struct:
-		return ftype, p.wrapErr(errors.New("nested structs not supported (create another type instead)"), pkg, obj.Pos())
+		return t, p.wrapErr(errors.New("nested structs not supported (create another type instead)"), pkg, obj.Pos())
 	}
-	ftype.TypeName = types.TypeString(originalTyp, resolver)
-	ftype.ObjectName = types.TypeString(originalTyp, func(other *types.Package) string { return "" })
-	ftype.ObjectNameLowerCamel = camelizeDown(ftype.ObjectName)
-	ftype.TypeID = pkgPath + "." + ftype.ObjectName
-	ftype.CleanObjectName = strings.TrimPrefix(ftype.ObjectName, "*")
-	ftype.TSType = ftype.CleanObjectName
-	ftype.JSType = ftype.CleanObjectName
-	ftype.SwiftType = ftype.CleanObjectName
-	if ftype.IsObject {
-		ftype.JSType = "object"
+	t.TypeName = types.TypeString(originalTyp, resolver)
+	t.ObjectName = types.TypeString(originalTyp, func(other *types.Package) string { return "" })
+	t.ObjectNameLowerCamel = camelizeDown(t.ObjectName)
+	t.TypeID = pkgPath + "." + t.ObjectName
+	t.CleanObjectName = strings.TrimPrefix(t.ObjectName, "*")
+	t.TSType = t.CleanObjectName
+	t.JSType = t.CleanObjectName
+	t.SwiftType = t.CleanObjectName
+	if t.IsObject {
+		t.JSType = "object"
 		//ftype.SwiftType = "Any"
+	} else if t.IsMap {
+		// TODO ftype.TSType = fmt.Sprintf("Map<%s,%s>", keyType, elemType)
+		t.JSType = "object"
 	} else {
-		switch ftype.UnderlyingTypeName {
+		switch t.UnderlyingTypeName {
 		case "interface{}":
-			ftype.JSType = "any"
-			ftype.SwiftType = "Any"
-			ftype.TSType = "object"
+			t.JSType = "any"
+			t.SwiftType = "Any"
+			t.TSType = "object"
 		case "map[string]interface{}":
-			ftype.JSType = "object"
-			ftype.TSType = "object"
-			ftype.SwiftType = "Any"
+			t.JSType = "object"
+			t.TSType = "object"
+			t.SwiftType = "Any"
 		case "string":
-			ftype.JSType = "string"
-			ftype.SwiftType = "String"
-			ftype.TSType = "string"
+			t.JSType = "string"
+			t.SwiftType = "String"
+			t.TSType = "string"
 		case "bool":
-			ftype.JSType = "boolean"
-			ftype.SwiftType = "Bool"
-			ftype.TSType = "boolean"
+			t.JSType = "boolean"
+			t.SwiftType = "Bool"
+			t.TSType = "boolean"
 		case "int", "int16", "int32", "int64",
 			"uint", "uint16", "uint32", "uint64",
 			"float32", "float64":
-			ftype.JSType = "number"
-			ftype.SwiftType = "Double"
-			ftype.TSType = "number"
+			t.JSType = "number"
+			t.SwiftType = "Double"
+			t.TSType = "number"
 		}
 	}
 
-	return ftype, nil
+	return t, nil
 }
 
 // addOutputFields adds built-in fields to the response objects
@@ -534,7 +559,7 @@ func (p *Parser) addOutputFields() error {
 		Name:           "Error",
 		NameLowerCamel: "error",
 		Comment:        "Error is string explaining what went wrong. Empty if everything was fine.",
-		Type: FieldType{
+		Type: Type{
 			TypeName:  "string",
 			JSType:    "string",
 			SwiftType: "String",
