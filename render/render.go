@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/fatih/structtag"
-	"github.com/gobuffalo/plush"
+	"github.com/gobuffalo/plush/v4"
 	"github.com/markbates/inflect"
 	"github.com/pkg/errors"
 	"github.com/sbward/oto/parser"
