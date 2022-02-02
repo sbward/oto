@@ -499,7 +499,6 @@ func (p *Parser) parseTypeDecl(pkg *packages.Package, obj types.Object) (Type, e
 		}
 	}
 	if typ.String() == "time.Time" {
-		t.Package = ""
 		t.UnderlyingTypeName = "string" // time.Time marshals itself to string
 	} else {
 		t.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
@@ -525,6 +524,7 @@ func (p *Parser) parseTypeDecl(pkg *packages.Package, obj types.Object) (Type, e
 		// TODO ftype.TSType = fmt.Sprintf("Map<%s,%s>", keyType, elemType)
 		t.JSType = "object"
 	} else {
+		t.Package = ""
 		switch t.UnderlyingTypeName {
 		case "interface{}":
 			t.JSType = "any"
