@@ -30,7 +30,7 @@ func TestObjectExample(t *testing.T) {
 			{
 				Name:           "Favourites",
 				NameLowerCamel: "favourites",
-				Type: FieldType{
+				Type: Type{
 					TypeName:        "obj2",
 					IsObject:        true,
 					CleanObjectName: "obj2",
@@ -42,7 +42,7 @@ func TestObjectExample(t *testing.T) {
 		Name: "obj2",
 		Fields: []Field{
 			{
-				Type:           FieldType{TypeName: "string", Multiple: true, CleanObjectName: "string"},
+				Type:           Type{TypeName: "string", Multiple: true, CleanObjectName: "string"},
 				NameLowerCamel: "languages",
 				Example:        "Go",
 			},
