@@ -328,7 +328,7 @@ func (p *Parser) parseMethod(pkg *packages.Package, serviceName string, methodTy
 
 // parseObject parses a struct type and adds it to the Definition.
 func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Struct) error {
-	if _, ok := p.objects[o.Name()]; ok {
+	if _, ok := p.objects[o.String()]; ok {
 		return nil
 	}
 	var obj Object
@@ -342,10 +342,6 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 	if err != nil {
 		return p.wrapErr(errors.New("extract comment metadata"), pkg, o.Pos())
 	}
-	if _, found := p.objects[obj.Name]; found {
-		// if this has already been parsed, skip it
-		return nil
-	}
 	if o.Pkg().Name() != pkg.Name {
 		obj.Imported = true
 		obj.Package = o.Pkg().Path()
@@ -357,7 +353,7 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 	}
 	obj.TypeID = o.Pkg().Path() + "." + obj.Name
 	obj.Fields = []Field{}
-	p.objects[obj.Name] = struct{}{}
+	p.objects[o.String()] = struct{}{}
 	for i := 0; i < st.NumFields(); i++ {
 		if !st.Field(i).Exported() {
 			continue
