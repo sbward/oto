@@ -102,6 +102,7 @@ type Object struct {
 	TypeID   string  `json:"typeID"`
 	Name     string  `json:"name"`
 	Imported bool    `json:"imported"`
+	Package  string  `json:"package"`
 	Fields   []Field `json:"fields"`
 	Comment  string  `json:"comment"`
 	// Metadata are typed key/value pairs extracted from the
@@ -347,6 +348,7 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 	}
 	if o.Pkg().Name() != pkg.Name {
 		obj.Imported = true
+		obj.Package = o.Pkg().Path()
 	}
 	typ := v.Underlying()
 	st, ok := typ.(*types.Struct)
