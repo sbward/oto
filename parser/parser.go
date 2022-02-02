@@ -499,6 +499,7 @@ func (p *Parser) parseTypeDecl(pkg *packages.Package, obj types.Object) (Type, e
 		}
 	}
 	if typ.String() == "time.Time" {
+		t.Package = ""
 		t.UnderlyingTypeName = "string" // time.Time marshals itself to string
 	} else {
 		t.UnderlyingTypeName = strings.TrimPrefix(types.TypeString(ut, func(other *types.Package) string { return "" }), "*")
