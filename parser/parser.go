@@ -518,6 +518,7 @@ func (p *Parser) parseTypeDecl(pkg *packages.Package, obj types.Object) (Type, e
 		//ftype.SwiftType = "Any"
 	} else if t.IsMap {
 		// TODO ftype.TSType = fmt.Sprintf("Map<%s,%s>", keyType, elemType)
+		t.TSType = "object"
 		t.JSType = "object"
 	} else {
 		t.Package = ""
