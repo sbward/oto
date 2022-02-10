@@ -120,6 +120,7 @@ You will love it.`)
 	is.Equal(strangeInputObj.Fields[3].NameJSON, "OptionalTime")
 	is.True(strangeInputObj.Fields[3].OmitEmpty)
 	is.Equal(strangeInputObj.Fields[4].NameJSON, "InfiniteLoop")
+	is.Equal(strangeInputObj.Fields[4].Embedded, true)
 	is.Equal(len(strangeInputObj.Fields), 5)
 
 	is.Equal(def.Services[2].Name, "Welcomer")

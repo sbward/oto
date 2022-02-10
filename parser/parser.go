@@ -119,6 +119,7 @@ type Field struct {
 	OmitEmpty      bool                `json:"omitEmpty"`
 	Comment        string              `json:"comment"`
 	Tag            string              `json:"tag"`
+	Embedded       bool                `json:"embedded"`
 	ParsedTags     map[string]FieldTag `json:"parsedTags"`
 	Example        interface{}         `json:"example"`
 	// Metadata are typed key/value pairs extracted from the
@@ -393,6 +394,7 @@ func (p *Parser) parseField(pkg *packages.Package, objectName string, v *types.V
 	if p.Verbose {
 		fmt.Printf("%s ", f.Name)
 	}
+	f.Embedded = v.Embedded()
 	f.NameLowerCamel = camelizeDown(f.Name)
 	f.Tag = tag
 	var err error
