@@ -103,6 +103,7 @@ type Object struct {
 	Name     string  `json:"name"`
 	Imported bool    `json:"imported"`
 	Package  string  `json:"package"`
+	Embeds   []Field `json:"embeds"`
 	Fields   []Field `json:"fields"`
 	Comment  string  `json:"comment"`
 	// Metadata are typed key/value pairs extracted from the
@@ -353,6 +354,7 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 		return p.wrapErr(errors.New(obj.Name+" must be a struct"), pkg, o.Pos())
 	}
 	obj.TypeID = o.Pkg().Path() + "." + obj.Name
+	obj.Embeds = []Field{}
 	obj.Fields = []Field{}
 	p.objects[o.String()] = struct{}{}
 	for i := 0; i < st.NumFields(); i++ {
@@ -366,7 +368,11 @@ func (p *Parser) parseObject(pkg *packages.Package, o types.Object, v *types.Str
 		if field.Skip {
 			continue
 		}
-		obj.Fields = append(obj.Fields, field)
+		if field.Embedded {
+			obj.Embeds = append(obj.Embeds, field)
+		} else {
+			obj.Fields = append(obj.Fields, field)
+		}
 	}
 	p.def.Objects = append(p.def.Objects, obj)
 	return nil
